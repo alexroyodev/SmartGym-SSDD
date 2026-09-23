@@ -46,4 +46,6 @@ services:
     container_name: smartgym_nodered
     ports:
       - "1880:1880"
+    volumes:
+      - ./nodered_data:/data
     restart: unless-stopped

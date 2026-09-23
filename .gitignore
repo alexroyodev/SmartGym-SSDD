@@ -1,0 +1,20 @@
+# Node-RED (Ignorar cachés, librerías y backups)
+nodered_data/node_modules/
+nodered_data/.npm/
+nodered_data/.logs/
+nodered_data/.*.backup
+nodered_data/*.backup
+nodered_data/.config.*
+
+# Spring Boot / Java
+backend/target/
+*.class
+
+# Python
+__pycache__/
+*.pyc
+
+# IDEs y SO
+.idea/
+.vscode/
+.DS_Store
