@@ -50,18 +50,20 @@
         "id": "f7b70c26b1a8e4d5",
         "type": "ui_base",
         "theme": {
-            "name": "theme-light",
+            "name": "theme-dark",
             "lightTheme": {
                 "default": "#0094CE",
                 "baseColor": "#0094CE",
                 "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
-                "edited": false
+                "edited": true,
+                "reset": false
             },
             "darkTheme": {
                 "default": "#097479",
-                "baseColor": "#097479",
+                "baseColor": "#0091ff",
                 "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
-                "edited": false
+                "edited": true,
+                "reset": false
             },
             "customTheme": {
                 "name": "Untitled Theme 1",
@@ -71,16 +73,16 @@
             },
             "themeState": {
                 "base-color": {
-                    "default": "#0094CE",
-                    "value": "#0094CE",
-                    "edited": false
+                    "default": "#097479",
+                    "value": "#0091ff",
+                    "edited": true
                 },
                 "page-titlebar-backgroundColor": {
-                    "value": "#0094CE",
+                    "value": "#0091ff",
                     "edited": false
                 },
                 "page-backgroundColor": {
-                    "value": "#fafafa",
+                    "value": "#111111",
                     "edited": false
                 },
                 "page-sidebar-backgroundColor": {
@@ -88,27 +90,27 @@
                     "edited": false
                 },
                 "group-textColor": {
-                    "value": "#1bbfff",
+                    "value": "#4db2ff",
                     "edited": false
                 },
                 "group-borderColor": {
-                    "value": "#ffffff",
+                    "value": "#555555",
                     "edited": false
                 },
                 "group-backgroundColor": {
-                    "value": "#ffffff",
+                    "value": "#333333",
                     "edited": false
                 },
                 "widget-textColor": {
-                    "value": "#111111",
+                    "value": "#eeeeee",
                     "edited": false
                 },
                 "widget-backgroundColor": {
-                    "value": "#0094ce",
+                    "value": "#0091ff",
                     "edited": false
                 },
                 "widget-borderColor": {
-                    "value": "#ffffff",
+                    "value": "#333333",
                     "edited": false
                 },
                 "base-font": {
@@ -124,7 +126,7 @@
             }
         },
         "site": {
-            "name": "Node-RED Dashboard",
+            "name": "SmartGym - Centro de Control",
             "hideToolbar": "false",
             "allowSwipe": "false",
             "lockMenu": "false",
@@ -149,7 +151,7 @@
         "tab": "53d603d734bef8d6",
         "order": 1,
         "disp": true,
-        "width": 6,
+        "width": 16,
         "collapse": false,
         "className": ""
     },
@@ -188,8 +190,8 @@
         "rap": true,
         "rh": 0,
         "inputs": 0,
-        "x": 510,
-        "y": 520,
+        "x": 270,
+        "y": 460,
         "wires": [
             [
                 "35967bb691e51a53"
@@ -200,7 +202,7 @@
         "id": "35967bb691e51a53",
         "type": "function",
         "z": "243786f0c673f8a7",
-        "name": "function 1",
+        "name": "Actualizar aforo",
         "func": "// Recuperamos el aforo actual de la memoria de Node-RED (empieza en 0)\nlet aforo = context.get('aforoActual') || 0;\n\n// Analizamos la dirección del mensaje MQTT\nif (msg.payload.direccion === \"entrada\") {\n    aforo += 1;\n} else if (msg.payload.direccion === \"salida\") {\n    // Evitamos que el aforo sea negativo si sale alguien sin haber entrado en el simulador\n    aforo = Math.max(0, aforo - 1);\n}\n\n// Guardamos el nuevo valor en memoria\ncontext.set('aforoActual', aforo);\n\n// Sobrescribimos el payload para que el panel visual solo reciba el número final\nmsg.payload = aforo;\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
@@ -208,8 +210,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 880,
-        "y": 520,
+        "x": 660,
+        "y": 460,
         "wires": [
             [
                 "1cef03c9393bd3f2"
@@ -222,8 +224,8 @@
         "z": "243786f0c673f8a7",
         "group": "33010e40d8d345d9",
         "order": 2,
-        "width": 0,
-        "height": 0,
+        "width": 8,
+        "height": 1,
         "name": "",
         "label": "Aforo",
         "format": "{{msg.payload}}",
@@ -233,8 +235,8 @@
         "font": "",
         "fontSize": 16,
         "color": "#000000",
-        "x": 1150,
-        "y": 520,
+        "x": 910,
+        "y": 460,
         "wires": []
     },
     {
@@ -243,12 +245,12 @@
         "z": "243786f0c673f8a7",
         "name": "",
         "group": "33010e40d8d345d9",
-        "order": 0,
+        "order": 3,
         "width": 0,
         "height": 0,
         "gtype": "gage",
         "title": "Latidos",
-        "label": "units",
+        "label": "",
         "format": "{{msg.payload.pulsaciones}}",
         "min": "60",
         "max": "200",
@@ -261,7 +263,7 @@
         "seg2": "160",
         "diff": false,
         "className": "",
-        "x": 680,
+        "x": 740,
         "y": 160,
         "wires": []
     },
@@ -274,9 +276,9 @@
         "tooltip": "",
         "place": "Select option",
         "group": "33010e40d8d345d9",
-        "order": 2,
-        "width": 0,
-        "height": 0,
+        "order": 1,
+        "width": 8,
+        "height": 1,
         "passthru": true,
         "multiple": false,
         "options": [],
@@ -296,7 +298,7 @@
         "id": "3b7b22d2819533f3",
         "type": "function",
         "z": "243786f0c673f8a7",
-        "name": "function 2",
+        "name": "Guardar usuario elegido",
         "func": "// Guarda el usuario elegido en una variable global del flujo\nflow.set('usuarioActivo', msg.payload);\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
@@ -304,7 +306,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1220,
+        "x": 1270,
         "y": 280,
         "wires": [
             []
@@ -314,7 +316,7 @@
         "id": "2a405df88a83b73c",
         "type": "function",
         "z": "243786f0c673f8a7",
-        "name": "function 3",
+        "name": "Seleccionar latidos",
         "func": "// Recuperamos qué usuario está seleccionado en el desplegable\nlet seleccionado = flow.get('usuarioActivo');\n\n// Si acaba de arrancar y no has tocado el desplegable, forzamos uno por defecto\nif (!seleccionado) {\n    seleccionado = \"u101\";\n}\n\n// Si el mensaje es del usuario seleccionado, pasamos solo sus pulsaciones\nif (msg.payload.id_usuario === seleccionado) {\n    msg.payload = msg.payload.pulsaciones;\n    return msg;\n}\n\n// Si es de otro usuario, destruimos el mensaje devolviendo null\nreturn null;",
         "outputs": 1,
         "timeout": 0,
@@ -322,7 +324,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 480,
+        "x": 510,
         "y": 160,
         "wires": [
             [
@@ -349,5 +351,45 @@
                 "024015aa21cf63a7"
             ]
         ]
+    },
+    {
+        "id": "c876683c03ee5a0d",
+        "type": "mqtt in",
+        "z": "243786f0c673f8a7",
+        "name": "",
+        "topic": "smartgym/alertas",
+        "qos": "2",
+        "datatype": "utf8",
+        "broker": "e896ff3207535f18",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 300,
+        "y": 620,
+        "wires": [
+            [
+                "142c2294cd37f288"
+            ]
+        ]
+    },
+    {
+        "id": "142c2294cd37f288",
+        "type": "ui_toast",
+        "z": "243786f0c673f8a7",
+        "position": "top right",
+        "displayTime": "5",
+        "highlight": "red",
+        "sendall": true,
+        "outputs": 0,
+        "ok": "OK",
+        "cancel": "",
+        "raw": false,
+        "className": "",
+        "topic": "ALERTA MÉDICA",
+        "name": "",
+        "x": 730,
+        "y": 620,
+        "wires": []
     }
 ]

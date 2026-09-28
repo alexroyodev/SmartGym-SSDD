@@ -11,6 +11,9 @@ import com.google.gson.Gson;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -48,6 +51,7 @@ public class KafkaConsumerService {
                 // Si lleva 3 lecturas seguidas (aprox 6 segundos en el simulador) por encima de 175
                 if (racha >= 3) {
                     System.err.println("⚠️ [ALERTA MÉDICA] El usuario " + usuario + " lleva " + racha + " picos continuados de " + latidos + " ppm. ¡Riesgo de fatiga extrema!");
+                    enviarAlertaVisual(usuario, latidos);
                 }
             } else {
                 // Si sus pulsaciones bajan de 175, se recupera y reseteamos su racha a 0
@@ -69,4 +73,22 @@ public class KafkaConsumerService {
             System.err.println("Error accesos: " + e.getMessage());
         }
     }
+
+    private void enviarAlertaVisual(String usuario, int latidos) {
+    try {
+        // Nos conectamos a Mosquitto con un ID aleatorio para no chocar
+        MqttClient client = new MqttClient("tcp://localhost:1883", MqttClient.generateClientId());
+        client.connect();
+        
+        // Creamos el mensaje de texto
+        String mensaje = "¡Peligro! " + usuario + " al límite (" + latidos + " ppm)";
+        
+        // Lo publicamos en el canal "smartgym/alertas"
+        client.publish("smartgym/alertas", new MqttMessage(mensaje.getBytes()));
+        
+        client.disconnect();
+    } catch (Exception e) {
+        System.err.println("Error publicando en MQTT: " + e.getMessage());
+    }
+}
 }
