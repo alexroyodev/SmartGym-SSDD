@@ -166,13 +166,76 @@
         "rap": true,
         "rh": 0,
         "inputs": 0,
-        "x": 470,
-        "y": 360,
+        "x": 270,
+        "y": 280,
         "wires": [
             [
-                "b30d559b5291977d"
+                "2a405df88a83b73c",
+                "17e3cc4c83fee13f"
             ]
         ]
+    },
+    {
+        "id": "4c7ed09706ea152c",
+        "type": "mqtt in",
+        "z": "243786f0c673f8a7",
+        "name": "",
+        "topic": "smartgym/accesos",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "e896ff3207535f18",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 510,
+        "y": 520,
+        "wires": [
+            [
+                "35967bb691e51a53"
+            ]
+        ]
+    },
+    {
+        "id": "35967bb691e51a53",
+        "type": "function",
+        "z": "243786f0c673f8a7",
+        "name": "function 1",
+        "func": "// Recuperamos el aforo actual de la memoria de Node-RED (empieza en 0)\nlet aforo = context.get('aforoActual') || 0;\n\n// Analizamos la dirección del mensaje MQTT\nif (msg.payload.direccion === \"entrada\") {\n    aforo += 1;\n} else if (msg.payload.direccion === \"salida\") {\n    // Evitamos que el aforo sea negativo si sale alguien sin haber entrado en el simulador\n    aforo = Math.max(0, aforo - 1);\n}\n\n// Guardamos el nuevo valor en memoria\ncontext.set('aforoActual', aforo);\n\n// Sobrescribimos el payload para que el panel visual solo reciba el número final\nmsg.payload = aforo;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 880,
+        "y": 520,
+        "wires": [
+            [
+                "1cef03c9393bd3f2"
+            ]
+        ]
+    },
+    {
+        "id": "1cef03c9393bd3f2",
+        "type": "ui_text",
+        "z": "243786f0c673f8a7",
+        "group": "33010e40d8d345d9",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Aforo",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1150,
+        "y": 520,
+        "wires": []
     },
     {
         "id": "b30d559b5291977d",
@@ -198,8 +261,93 @@
         "seg2": "160",
         "diff": false,
         "className": "",
-        "x": 860,
-        "y": 360,
+        "x": 680,
+        "y": 160,
         "wires": []
+    },
+    {
+        "id": "024015aa21cf63a7",
+        "type": "ui_dropdown",
+        "z": "243786f0c673f8a7",
+        "name": "",
+        "label": "Seleccionar Atleta",
+        "tooltip": "",
+        "place": "Select option",
+        "group": "33010e40d8d345d9",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "multiple": false,
+        "options": [],
+        "payload": "",
+        "topic": "topic",
+        "topicType": "msg",
+        "className": "",
+        "x": 930,
+        "y": 280,
+        "wires": [
+            [
+                "3b7b22d2819533f3"
+            ]
+        ]
+    },
+    {
+        "id": "3b7b22d2819533f3",
+        "type": "function",
+        "z": "243786f0c673f8a7",
+        "name": "function 2",
+        "func": "// Guarda el usuario elegido en una variable global del flujo\nflow.set('usuarioActivo', msg.payload);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1220,
+        "y": 280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2a405df88a83b73c",
+        "type": "function",
+        "z": "243786f0c673f8a7",
+        "name": "function 3",
+        "func": "// Recuperamos qué usuario está seleccionado en el desplegable\nlet seleccionado = flow.get('usuarioActivo');\n\n// Si acaba de arrancar y no has tocado el desplegable, forzamos uno por defecto\nif (!seleccionado) {\n    seleccionado = \"u101\";\n}\n\n// Si el mensaje es del usuario seleccionado, pasamos solo sus pulsaciones\nif (msg.payload.id_usuario === seleccionado) {\n    msg.payload = msg.payload.pulsaciones;\n    return msg;\n}\n\n// Si es de otro usuario, destruimos el mensaje devolviendo null\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 160,
+        "wires": [
+            [
+                "b30d559b5291977d"
+            ]
+        ]
+    },
+    {
+        "id": "17e3cc4c83fee13f",
+        "type": "function",
+        "z": "243786f0c673f8a7",
+        "name": "Detector usuarios nuevos",
+        "func": "// Memoria interna para guardar los usuarios que vamos descubriendo\nlet usuariosConocidos = context.get('listaUsuarios') || [];\nlet nuevoUsuario = msg.payload.id_usuario;\n\n// Si llega un ID que no está en nuestra lista, lo registramos\nif (!usuariosConocidos.includes(nuevoUsuario)) {\n    usuariosConocidos.push(nuevoUsuario);\n    context.set('listaUsuarios', usuariosConocidos);\n    \n    // Le inyectamos la lista actualizada al desplegable\n    msg.options = usuariosConocidos;\n    return msg; \n}\n\n// Si el usuario ya era conocido, cortamos el flujo aquí para no saturar el desplegable\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 630,
+        "y": 280,
+        "wires": [
+            [
+                "024015aa21cf63a7"
+            ]
+        ]
     }
 ]
