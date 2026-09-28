@@ -7,8 +7,8 @@ import threading
 # Configuración del Broker MQTT (Mosquitto en Docker)
 BROKER = "localhost"
 PORT = 1883
-TOPIC_TELEMETRIA = "smartgym/telemetria"
-TOPIC_ACCESOS = "smartgym/accesos"
+TOPIC_TELEMETRIA = "smartgym/rivas/sala_cardio/cinta_01/telemetria"
+TOPIC_ACCESOS = "smartgym/rivas/acceso_principal/torno_01/evento"
 
 client = mqtt.Client()
 client.connect(BROKER, PORT, 60)

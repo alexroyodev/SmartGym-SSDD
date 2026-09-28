@@ -1,16 +1,12 @@
 package com.ssdd.smartgym.service;
 
-
-
 import com.google.gson.Gson;
 import com.ssdd.smartgym.model.AccesoDocument;
 import com.ssdd.smartgym.model.AccesoRepository;
 import com.ssdd.smartgym.model.TelemetriaDocument;
 import com.ssdd.smartgym.model.TelemetriaRepository;
-import com.google.gson.Gson;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
-
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -75,20 +71,20 @@ public class KafkaConsumerService {
     }
 
     private void enviarAlertaVisual(String usuario, int latidos) {
-    try {
-        // Nos conectamos a Mosquitto con un ID aleatorio para no chocar
-        MqttClient client = new MqttClient("tcp://localhost:1883", MqttClient.generateClientId());
-        client.connect();
-        
-        // Creamos el mensaje de texto
-        String mensaje = "¡Peligro! " + usuario + " al límite (" + latidos + " ppm)";
-        
-        // Lo publicamos en el canal "smartgym/alertas"
-        client.publish("smartgym/alertas", new MqttMessage(mensaje.getBytes()));
-        
-        client.disconnect();
-    } catch (Exception e) {
-        System.err.println("Error publicando en MQTT: " + e.getMessage());
+        try {
+            // Nos conectamos a Mosquitto con un ID aleatorio para no chocar
+            MqttClient client = new MqttClient("tcp://localhost:1883", MqttClient.generateClientId());
+            client.connect();
+            
+            // Creamos el mensaje de texto
+            String mensaje = "¡Peligro! " + usuario + " al límite (" + latidos + " ppm)";
+            
+            // Publicamos en la nueva ruta semántica de alertas
+            client.publish("smartgym/rivas/alertas/medicas", new MqttMessage(mensaje.getBytes()));
+            
+            client.disconnect();
+        } catch (Exception e) {
+            System.err.println("Error publicando en MQTT: " + e.getMessage());
+        }
     }
-}
 }

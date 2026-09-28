@@ -160,7 +160,7 @@
         "type": "mqtt in",
         "z": "243786f0c673f8a7",
         "name": "",
-        "topic": "smartgym/telemetria",
+        "topic": "smartgym/rivas/sala_cardio/+/telemetria",
         "qos": "2",
         "datatype": "json",
         "broker": "e896ff3207535f18",
@@ -168,7 +168,7 @@
         "rap": true,
         "rh": 0,
         "inputs": 0,
-        "x": 270,
+        "x": 230,
         "y": 280,
         "wires": [
             [
@@ -182,7 +182,7 @@
         "type": "mqtt in",
         "z": "243786f0c673f8a7",
         "name": "",
-        "topic": "smartgym/accesos",
+        "topic": "smartgym/rivas/acceso_principal/+/evento",
         "qos": "2",
         "datatype": "json",
         "broker": "e896ff3207535f18",
@@ -190,7 +190,7 @@
         "rap": true,
         "rh": 0,
         "inputs": 0,
-        "x": 270,
+        "x": 340,
         "y": 460,
         "wires": [
             [
@@ -357,7 +357,7 @@
         "type": "mqtt in",
         "z": "243786f0c673f8a7",
         "name": "",
-        "topic": "smartgym/alertas",
+        "topic": "smartgym/rivas/alertas/medicas",
         "qos": "2",
         "datatype": "utf8",
         "broker": "e896ff3207535f18",
@@ -365,7 +365,7 @@
         "rap": true,
         "rh": 0,
         "inputs": 0,
-        "x": 300,
+        "x": 350,
         "y": 620,
         "wires": [
             [

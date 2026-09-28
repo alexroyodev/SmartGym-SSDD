@@ -8,17 +8,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class MqttSubscriber {
 
-    @Value("${mqtt.broker.url}")
+    @Value("${mqtt.broker.url:tcp://localhost:1883}")
     private String brokerUrl;
 
-    @Value("${mqtt.client.id}")
+    @Value("${mqtt.client.id:backend-bridge}")
     private String clientId;
-
-    @Value("${mqtt.topic.telemetria}")
-    private String topicTelemetria;
-
-    @Value("${mqtt.topic.accesos}")
-    private String topicAccesos;
 
     private final KafkaProducerService kafkaProducer;
 
@@ -38,15 +32,15 @@ public class MqttSubscriber {
             client.connect(options);
             System.out.println("✅ Conectado con éxito a MQTT: " + brokerUrl);
 
-            // 2. Nos suscribimos al topic de Telemetría (las máquinas)
-            client.subscribe(topicTelemetria, (topic, message) -> {
+            // 2. Nos suscribimos a TODAS las cintas usando el comodín (+)
+            client.subscribe("smartgym/rivas/sala_cardio/+/telemetria", (topic, message) -> {
                 String payload = new String(message.getPayload());
                 // Lo mandamos al topic de Kafka equivalente
                 kafkaProducer.enviarAKafka("kafka-telemetria", payload);
             });
 
-            // 3. Nos suscribimos al topic de Accesos (los tornos)
-            client.subscribe(topicAccesos, (topic, message) -> {
+            // 3. Nos suscribimos a TODOS los tornos usando el comodín (+)
+            client.subscribe("smartgym/rivas/acceso_principal/+/evento", (topic, message) -> {
                 String payload = new String(message.getPayload());
                 // Lo mandamos al topic de Kafka equivalente
                 kafkaProducer.enviarAKafka("kafka-accesos", payload);
