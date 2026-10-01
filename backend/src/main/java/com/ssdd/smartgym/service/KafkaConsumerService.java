@@ -18,14 +18,17 @@ public class KafkaConsumerService {
 
     private final TelemetriaRepository telemetriaRepository;
     private final AccesoRepository accesoRepository;
+    private final KafkaProducerService kafkaProducer; // Añadimos el productor
     private final Gson gson;
     
     // Memoria temporal para rastrear latidos altos continuados por usuario
     private final Map<String, Integer> alertasFatiga = new ConcurrentHashMap<>();
 
-    public KafkaConsumerService(TelemetriaRepository telemetriaRepository, AccesoRepository accesoRepository) {
+    // Inyectamos el KafkaProducerService en el constructor
+    public KafkaConsumerService(TelemetriaRepository telemetriaRepository, AccesoRepository accesoRepository, KafkaProducerService kafkaProducer) {
         this.telemetriaRepository = telemetriaRepository;
         this.accesoRepository = accesoRepository;
+        this.kafkaProducer = kafkaProducer;
         this.gson = new Gson();
     }
 
@@ -55,7 +58,9 @@ public class KafkaConsumerService {
             }
 
         } catch (Exception e) {
-            System.err.println("Error telemetría: " + e.getMessage());
+            // PATRÓN DLQ: Si falla, mandamos el mensaje corrupto a la cola de muertos
+            System.err.println("❌ Error en telemetría. Enviando a DLQ. Motivo: " + e.getMessage());
+            kafkaProducer.enviarAKafka("kafka-telemetria-dlq", payload);
         }
     }
 
@@ -66,7 +71,9 @@ public class KafkaConsumerService {
             accesoRepository.save(doc);
             System.out.println("[PERSISTENCIA] Acceso guardado: " + doc.getDireccion() + " por " + doc.getId_sensor());
         } catch (Exception e) {
-            System.err.println("Error accesos: " + e.getMessage());
+            // PATRÓN DLQ: Si falla, mandamos el mensaje corrupto a la cola de muertos
+            System.err.println("❌ Error en accesos. Enviando a DLQ. Motivo: " + e.getMessage());
+            kafkaProducer.enviarAKafka("kafka-accesos-dlq", payload);
         }
     }
 
