@@ -1,4 +1,4 @@
-# 🏋️‍♂️ SmartGym IoT - Telemetría y Aforo en Tiempo Real
+# 🏋️‍♂️ SmartGym - Telemetría y Aforo en Tiempo Real
 
 Este proyecto simula el sistema IoT de un gimnasio inteligente. Captura datos biométricos de los usuarios (pulsaciones en las máquinas) y eventos de acceso (tornos), procesándolos en tiempo real mediante una arquitectura de streaming y almacenamiento distribuido.
 
