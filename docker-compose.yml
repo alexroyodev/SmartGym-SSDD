@@ -41,6 +41,7 @@ services:
     restart: unless-stopped
 
   # Capa de Visualización
+# Capa de Visualización
   node-red:
     image: nodered/node-red:latest
     container_name: smartgym_nodered
@@ -48,4 +49,5 @@ services:
       - "1880:1880"
     volumes:
       - ./nodered_data:/data
+    entrypoint: ["/bin/bash", "-c", "npm --prefix /data list node-red-dashboard > /dev/null 2>&1 || npm --prefix /data install node-red-dashboard; ./entrypoint.sh"]
     restart: unless-stopped
