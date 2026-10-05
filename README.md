@@ -17,6 +17,23 @@ Abre una terminal en la raíz del proyecto y ejecuta:
 
     docker-compose up -d
 
+En caso de utilizar una versión más moderna de Docker Compose:
+
+    docker compose up -d
+
+Si MongoDB da problemas al arrancar en un dispositivo con S.O. Linux
+modifica esta sección del archivo docker-compose.yml:
+
+    mongodb:
+    image: mongo:latest
+    container_name: smartgym_mongo
+    environment:
+      GLIBC_TUNABLES: glibc.pthread.rseq=1
+    ports:
+      - "27017:27017"
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    restart: unless-stopped
+
 *Esto descargará y arrancará Mosquitto (MQTT), Apache Kafka, MongoDB y Node-RED.*
 
 ### Paso 2: Inicializar la base de datos distribuida
