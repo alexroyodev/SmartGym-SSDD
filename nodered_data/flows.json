@@ -391,5 +391,50 @@
         "x": 730,
         "y": 620,
         "wires": []
+    },
+    {
+        "id": "0021c38f50f42ced",
+        "type": "ui_slider",
+        "z": "243786f0c673f8a7",
+        "name": "",
+        "label": "Umbral de Fatiga (ppm): {{value}}",
+        "tooltip": "",
+        "group": "33010e40d8d345d9",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "outs": "all",
+        "topic": "topic",
+        "topicType": "msg",
+        "min": "150",
+        "max": "200",
+        "step": 1,
+        "className": "",
+        "x": 250,
+        "y": 740,
+        "wires": [
+            [
+                "b370d46bf16007dd"
+            ]
+        ]
+    },
+    {
+        "id": "b370d46bf16007dd",
+        "type": "mqtt out",
+        "z": "243786f0c673f8a7",
+        "name": "",
+        "topic": "smartgym/rivas/config/umbral",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "e896ff3207535f18",
+        "x": 640,
+        "y": 740,
+        "wires": []
     }
 ]

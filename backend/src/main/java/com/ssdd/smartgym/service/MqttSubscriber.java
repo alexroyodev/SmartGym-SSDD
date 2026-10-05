@@ -32,18 +32,22 @@ public class MqttSubscriber {
             client.connect(options);
             System.out.println("✅ Conectado con éxito a MQTT: " + brokerUrl);
 
-            // 2. Nos suscribimos a TODAS las cintas usando el comodín (+)
-            client.subscribe("smartgym/rivas/sala_cardio/+/telemetria", (topic, message) -> {
+            // 2. Nos suscribimos a la Telemetría (QoS 0 - At-most-once)
+            client.subscribe("smartgym/rivas/sala_cardio/+/telemetria", 0, (topic, message) -> {
                 String payload = new String(message.getPayload());
-                // Lo mandamos al topic de Kafka equivalente
                 kafkaProducer.enviarAKafka("kafka-telemetria", payload);
             });
 
-            // 3. Nos suscribimos a TODOS los tornos usando el comodín (+)
-            client.subscribe("smartgym/rivas/acceso_principal/+/evento", (topic, message) -> {
+            // 3. Nos suscribimos a los Tornos (QoS 1 - At-least-once)
+            client.subscribe("smartgym/rivas/acceso_principal/+/evento", 1, (topic, message) -> {
                 String payload = new String(message.getPayload());
-                // Lo mandamos al topic de Kafka equivalente
                 kafkaProducer.enviarAKafka("kafka-accesos", payload);
+            });
+
+            // 4. NUEVO: Nos suscribimos a la Configuración del Slider (QoS 1 - Crítico)
+            client.subscribe("smartgym/rivas/config/umbral", 1, (topic, message) -> {
+                String payload = new String(message.getPayload());
+                kafkaProducer.enviarAKafka("kafka-config", payload);
             });
 
         } catch (MqttException e) {
