@@ -42,9 +42,13 @@ En Mac/Linux:
 ### Paso 4: Encender los "Sensores" (Simulador Python)
 Vamos a generar los datos falsos. Abre una terminal nueva en la raíz del proyecto, instala la librería necesaria y ejecuta el script:
 
-    pip install paho-mqtt
-    python simulador.py
+```bash
+pip install paho-mqtt
+```
 
+```bash
+python simulador.py
+```
 *Verás en la consola de Java cómo los datos empiezan a llegar y a guardarse en la base de datos a toda velocidad.*
 
 ### Paso 5: Ver el Panel Visual en Tiempo Real (Node-RED)
