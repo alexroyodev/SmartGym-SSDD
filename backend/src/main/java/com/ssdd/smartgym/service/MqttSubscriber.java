@@ -23,7 +23,7 @@ public class MqttSubscriber {
     @PostConstruct
     public void conectarYEscuchar() {
         try {
-            // 1. Nos conectamos a Mosquitto
+            // Nos conectamos a Mosquitto
             MqttClient client = new MqttClient(brokerUrl, clientId);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setAutomaticReconnect(true);
@@ -32,19 +32,19 @@ public class MqttSubscriber {
             client.connect(options);
             System.out.println("✅ Conectado con éxito a MQTT: " + brokerUrl);
 
-            // 2. Nos suscribimos a la Telemetría (QoS 0 - At-most-once)
+            // Nos suscribimos a la Telemetría (QoS 0 - At-most-once)
             client.subscribe("smartgym/rivas/sala_cardio/+/telemetria", 0, (topic, message) -> {
                 String payload = new String(message.getPayload());
                 kafkaProducer.enviarAKafka("kafka-telemetria", payload);
             });
 
-            // 3. Nos suscribimos a los Tornos (QoS 1 - At-least-once)
+            // Nos suscribimos a los Tornos (QoS 1 - At-least-once)
             client.subscribe("smartgym/rivas/acceso_principal/+/evento", 1, (topic, message) -> {
                 String payload = new String(message.getPayload());
                 kafkaProducer.enviarAKafka("kafka-accesos", payload);
             });
 
-            // 4. NUEVO: Nos suscribimos a la Configuración del Slider (QoS 1 - Crítico)
+            // Nos suscribimos a la Configuración del Slider (QoS 1 - Crítico)
             client.subscribe("smartgym/rivas/config/umbral", 1, (topic, message) -> {
                 String payload = new String(message.getPayload());
                 kafkaProducer.enviarAKafka("kafka-config", payload);

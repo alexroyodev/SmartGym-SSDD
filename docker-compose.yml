@@ -41,7 +41,6 @@ services:
     restart: unless-stopped
 
   # Capa de Visualización
-# Capa de Visualización
   node-red:
     image: nodered/node-red:latest
     container_name: smartgym_nodered
