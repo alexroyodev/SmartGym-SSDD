@@ -1,17 +1,24 @@
 package com.ssdd.smartgym.model;
 
+import com.google.gson.annotations.SerializedName;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
+
 @Document(collection = "telemetria")
 public class TelemetriaDocument {
-    
+
+    // Id único del evento generado en el sensor. Al usarlo como _id, save() hace upsert:
+    // un mensaje duplicado sobrescribe el mismo documento en vez de crear otro (idempotencia).
+    // Si el JSON no trae id, MongoDB genera un ObjectId.
     @Id
-    private String id; // Mongo genera este ID automáticamente
+    @SerializedName(value = "id", alternate = {"event_id", "eventId", "id_evento", "uuid"})
+    private String id;
     private String id_usuario;
     private int pulsaciones;
+    private Date fechaIngesta; // timestamp del registro en Kafka
 
-    // Constructores, Getters y Setters
     public TelemetriaDocument() {}
 
     public String getId() { return id; }
@@ -22,4 +29,7 @@ public class TelemetriaDocument {
 
     public int getPulsaciones() { return pulsaciones; }
     public void setPulsaciones(int pulsaciones) { this.pulsaciones = pulsaciones; }
+
+    public Date getFechaIngesta() { return fechaIngesta; }
+    public void setFechaIngesta(Date fechaIngesta) { this.fechaIngesta = fechaIngesta; }
 }

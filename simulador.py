@@ -1,44 +1,109 @@
-import paho.mqtt.client as mqtt
+"""
+Simulador SmartGym IoT: 3 cintas de correr (telemetría) y 1 torno de acceso.
+Cada dispositivo es un cliente MQTT independiente con su propio Last Will & Testament.
+"""
 import json
-import time
 import random
 import threading
+import time
+import uuid
 
-# Configuración del Broker MQTT (Mosquitto en Docker)
+import paho.mqtt.client as mqtt
+
 BROKER = "localhost"
 PORT = 1883
-TOPIC_TELEMETRIA = "smartgym/rivas/sala_cardio/cinta_01/telemetria"
-TOPIC_ACCESOS = "smartgym/rivas/acceso_principal/torno_01/evento"
+KEEPALIVE = 10  # segundos; el broker da por caído un cliente tras 1,5 × keepalive sin tráfico
 
-client = mqtt.Client()
-client.connect(BROKER, PORT, 60)
+SEDE = "smartgym/rivas"
+CINTAS = {"cinta_01": "u101", "cinta_02": "u102", "cinta_03": "u103"}  # máquina -> atleta
+TORNO = "torno_01"
 
-def simular_telemetria():
-    usuarios = ["u101", "u102", "u103"]
-    while True:
-        for user in usuarios:
-            payload = {
-                "id_usuario": user,
-                "pulsaciones": random.randint(120, 185) # Simula latidos
-            }
-            client.publish(TOPIC_TELEMETRIA, json.dumps(payload), qos=0)
-            print(f"📡 [MQTT] Telemetría enviada: {payload}")
-        time.sleep(2) # Envía datos cada 2 segundos
 
-def simular_accesos():
-    while True:
+def crear_cliente(client_id, topic_estado):
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=client_id)
+
+    # LWT: si el dispositivo se desconecta de forma abrupta, el BROKER publica "offline"
+    client.will_set(topic_estado, "offline", qos=1, retain=True)
+
+    def on_connect(c, userdata, flags, reason_code, properties):
+        # Estado retenido: un suscriptor que llegue más tarde conoce el estado actual
+        c.publish(topic_estado, "online", qos=1, retain=True)
+        print(f"✅ [{client_id}] conectado ({reason_code})")
+
+    client.on_connect = on_connect
+    client.connect(BROKER, PORT, KEEPALIVE)
+    client.loop_start()  # hilo de red: procesa PUBACK, keepalive y reconexiones
+    return client
+
+
+def cerrar(client, topic_estado):
+    # Apagado ordenado: el propio dispositivo avisa (el LWT solo salta en caídas abruptas)
+    client.publish(topic_estado, "offline", qos=1, retain=True).wait_for_publish(timeout=5)
+    client.disconnect()
+    client.loop_stop()
+
+
+def simular_cinta(maquina, usuario, parar):
+    topic_estado = f"{SEDE}/sala_cardio/{maquina}/estado"
+    topic = f"{SEDE}/sala_cardio/{maquina}/telemetria"
+    client = crear_cliente(f"sim-{maquina}", topic_estado)
+
+    pulsaciones = random.uniform(120, 140)
+    while not parar.is_set():
+        # Paseo aleatorio con vuelta a la media (~150 ppm): el pulso evoluciona de forma
+        # continua, por lo que las rachas por encima del umbral son realistas
+        pulsaciones += random.uniform(-8, 8) + (150 - pulsaciones) * 0.1
+        pulsaciones = max(90, min(200, pulsaciones))
+
         payload = {
-            "id_sensor": "torno_principal",
-            "direccion": random.choice(["entrada", "salida"])
+            "id": str(uuid.uuid4()),  # id único de evento -> idempotencia aguas abajo
+            "id_usuario": usuario,
+            "pulsaciones": round(pulsaciones),
         }
-        client.publish(TOPIC_ACCESOS, json.dumps(payload), qos=1)
-        print(f"🚪 [MQTT] Acceso enviado: {payload}")
-        time.sleep(10) # Envía un acceso aleatorio cada 10 segundos
+        client.publish(topic, json.dumps(payload), qos=0)  # QoS 0: at-most-once
+        print(f"📡 [{maquina}] {payload}")
+        parar.wait(2)
 
-# Iniciamos los dos hilos en paralelo
-print("Arrancando simulador SmartGym IoT...")
-hilo_telemetria = threading.Thread(target=simular_telemetria)
-hilo_accesos = threading.Thread(target=simular_accesos)
+    cerrar(client, topic_estado)
 
-hilo_telemetria.start()
-hilo_accesos.start()
+
+def simular_torno(parar):
+    topic_estado = f"{SEDE}/acceso_principal/{TORNO}/estado"
+    topic = f"{SEDE}/acceso_principal/{TORNO}/evento"
+    client = crear_cliente(f"sim-{TORNO}", topic_estado)
+
+    dentro = 0
+    while not parar.is_set():
+        # Solo puede salir alguien si hay gente dentro
+        direccion = "entrada" if dentro == 0 else random.choice(["entrada", "salida"])
+        dentro += 1 if direccion == "entrada" else -1
+
+        payload = {
+            "id": str(uuid.uuid4()),
+            "id_sensor": TORNO,
+            "direccion": direccion,
+        }
+        client.publish(topic, json.dumps(payload), qos=1)  # QoS 1: at-least-once
+        print(f"🚪 [{TORNO}] {payload}  (dentro: {dentro})")
+        parar.wait(10)
+
+    cerrar(client, topic_estado)
+
+
+if __name__ == "__main__":
+    print("Arrancando simulador SmartGym IoT... (Ctrl+C para parar)")
+    parar = threading.Event()
+
+    hilos = [threading.Thread(target=simular_cinta, args=(m, u, parar)) for m, u in CINTAS.items()]
+    hilos.append(threading.Thread(target=simular_torno, args=(parar,)))
+    for h in hilos:
+        h.start()
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\nParando dispositivos...")
+        parar.set()
+        for h in hilos:
+            h.join()

@@ -203,7 +203,7 @@
         "type": "function",
         "z": "243786f0c673f8a7",
         "name": "Actualizar aforo",
-        "func": "// Recuperamos el aforo actual de la memoria de Node-RED (empieza en 0)\nlet aforo = context.get('aforoActual') || 0;\n\n// Analizamos la dirección del mensaje MQTT\nif (msg.payload.direccion === \"entrada\") {\n    aforo += 1;\n} else if (msg.payload.direccion === \"salida\") {\n    // Evitamos que el aforo sea negativo si sale alguien sin haber entrado en el simulador\n    aforo = Math.max(0, aforo - 1);\n}\n\n// Guardamos el nuevo valor en memoria\ncontext.set('aforoActual', aforo);\n\n// Sobrescribimos el payload para que el panel visual solo reciba el número final\nmsg.payload = aforo;\nreturn msg;",
+        "func": "const p = (typeof msg.payload === 'string') ? JSON.parse(msg.payload) : msg.payload;\nconst idEvento = p.id || p.event_id || p.eventId || p.id_evento || p.uuid;\n\n// QoS 1 puede entregar el mismo evento dos veces: se ignoran los ya procesados\nlet vistos = context.get('eventosVistos') || [];\nif (idEvento && vistos.includes(idEvento)) {\n    return null;\n}\nif (idEvento) {\n    vistos.push(idEvento);\n    if (vistos.length > 500) vistos.shift(); // ventana acotada de ids recientes\n    context.set('eventosVistos', vistos);\n}\n\nlet aforo = context.get('aforoActual') || 0;\nif (p.direccion === 'entrada') aforo += 1;\nelse if (p.direccion === 'salida') aforo = Math.max(0, aforo - 1);\ncontext.set('aforoActual', aforo);\n\nmsg.payload = aforo;\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -426,7 +426,7 @@
         "name": "",
         "topic": "smartgym/rivas/config/umbral",
         "qos": "1",
-        "retain": "",
+        "retain": "true",
         "respTopic": "",
         "contentType": "",
         "userProps": "",
@@ -435,6 +435,66 @@
         "broker": "e896ff3207535f18",
         "x": 640,
         "y": 740,
+        "wires": []
+    },
+    {
+        "id": "fa5ed98741437e28",
+        "type": "mqtt in",
+        "z": "243786f0c673f8a7",
+        "name": "",
+        "topic": "smartgym/rivas/+/+/estado",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "e896ff3207535f18",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 290,
+        "y": 860,
+        "wires": [
+            [
+                "f2754c4ae52b0bac"
+            ]
+        ]
+    },
+    {
+        "id": "f2754c4ae52b0bac",
+        "type": "function",
+        "z": "243786f0c673f8a7",
+        "name": "Comprobar offline",
+        "func": "if (msg.payload === \"offline\") {\n    const dispositivo = msg.topic.split(\"/\")[3];\n    msg.payload = \"🔌 Dispositivo desconectado: \" + dispositivo;\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 630,
+        "y": 860,
+        "wires": [
+            [
+                "6f1b93ff10e6d8f4"
+            ]
+        ]
+    },
+    {
+        "id": "6f1b93ff10e6d8f4",
+        "type": "ui_toast",
+        "z": "243786f0c673f8a7",
+        "position": "top right",
+        "displayTime": "3",
+        "highlight": "",
+        "sendall": true,
+        "outputs": 0,
+        "ok": "OK",
+        "cancel": "",
+        "raw": false,
+        "className": "",
+        "topic": "",
+        "name": "",
+        "x": 1010,
+        "y": 860,
         "wires": []
     }
 ]
